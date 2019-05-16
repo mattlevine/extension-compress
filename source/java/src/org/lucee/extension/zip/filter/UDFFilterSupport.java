@@ -25,36 +25,35 @@ import lucee.runtime.type.UDF;
 import lucee.runtime.util.Excepton;
 
 public abstract class UDFFilterSupport {
-	
-	public static final short TYPE_ANY=0;
-	public static final short TYPE_BOOLEAN=2;
-	public static final short TYPE_STRING=7;
+
+	public static final short TYPE_ANY = 0;
+	public static final short TYPE_BOOLEAN = 2;
+	public static final short TYPE_STRING = 7;
 
 	protected UDF udf;
-	protected Object[] args=new Object[1];
-	
+	protected Object[] args = new Object[1];
+
 	public UDFFilterSupport(UDF udf) throws PageException {
-		this.udf=udf;
+		this.udf = udf;
 		Excepton util = CFMLEngineFactory.getInstance().getExceptionUtil();
 		// check UDF return type
 		int type = udf.getReturnType();
-		if(type!=TYPE_BOOLEAN && type!=TYPE_ANY)
-			throw util.createExpressionException("invalid return type ["+udf.getReturnTypeAsString()+"] for UDF Filter, valid return types are [boolean,any]");
-		
+		if (type != TYPE_BOOLEAN && type != TYPE_ANY)
+			throw util.createExpressionException("invalid return type [" + udf.getReturnTypeAsString() + "] for UDF Filter, valid return types are [boolean,any]");
+
 		// check UDF arguments
 		FunctionArgument[] args = udf.getFunctionArguments();
-		if(args.length>1)
-			throw util.createExpressionException("UDF filter has to many arguments ["+args.length+"], should have at maximum 1 argument");
-		
-		if(args.length==1){
-			type=args[0].getType();
-			if(type!=TYPE_STRING && type!=TYPE_ANY)
-				throw util.createExpressionException("invalid type ["+args[0].getTypeAsString()+"] for first argument of UDF Filter, valid return types are [string,any]");
+		if (args.length > 1) throw util.createExpressionException("UDF filter has to many arguments [" + args.length + "], should have at maximum 1 argument");
+
+		if (args.length == 1) {
+			type = args[0].getType();
+			if (type != TYPE_STRING && type != TYPE_ANY)
+				throw util.createExpressionException("invalid type [" + args[0].getTypeAsString() + "] for first argument of UDF Filter, valid return types are [string,any]");
 		}
 	}
-	
-    @Override
+
+	@Override
 	public String toString() {
-		return "UDFFilter:"+udf;
+		return "UDFFilter:" + udf;
 	}
 }

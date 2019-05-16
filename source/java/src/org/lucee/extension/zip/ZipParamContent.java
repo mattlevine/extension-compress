@@ -25,9 +25,9 @@ public class ZipParamContent implements ZipParamAbstr {
 	private String charset;
 
 	public ZipParamContent(Object content, String entryPath, String charset) {
-		this.content=content;
-		this.entryPath=entryPath;
-		this.charset=charset;
+		this.content = content;
+		this.entryPath = entryPath;
+		this.charset = charset;
 	}
 
 	/**
@@ -50,6 +50,5 @@ public class ZipParamContent implements ZipParamAbstr {
 	public String getCharset() {
 		return charset;
 	}
-
 
 }

@@ -20,49 +20,40 @@ package org.lucee.extension.zip.filter;
 import lucee.commons.io.res.Resource;
 import lucee.loader.engine.CFMLEngineFactory;
 
+public class WildcardPatternFilter implements ResourceAndResourceNameFilter {
 
-public class WildcardPatternFilter 
-	implements ResourceAndResourceNameFilter {
-
-	
 	private final WildcardPattern matcher;
-	
-	
-	public WildcardPatternFilter( String patt, boolean ignoreCase, String patternDelimiters ) {
-		
-		matcher = new WildcardPattern( patt, !ignoreCase, patternDelimiters );
+
+	public WildcardPatternFilter(String patt, boolean ignoreCase, String patternDelimiters) {
+
+		matcher = new WildcardPattern(patt, !ignoreCase, patternDelimiters);
 	}
-	
-	
-	public WildcardPatternFilter( String pattern, String patternDelimiters ) {
-		this( pattern, CFMLEngineFactory.getInstance().getSystemUtil().isWindows(), patternDelimiters );
+
+	public WildcardPatternFilter(String pattern, String patternDelimiters) {
+		this(pattern, CFMLEngineFactory.getInstance().getSystemUtil().isWindows(), patternDelimiters);
 	}
-	
-	
+
 	@Override
-	public boolean accept( Resource res ) {
-		
-		return matcher.isMatch( res.getName() );
+	public boolean accept(Resource res) {
+
+		return matcher.isMatch(res.getName());
 	}
 
-	
 	@Override
-	public boolean accept( Resource res, String name ) {
+	public boolean accept(Resource res, String name) {
 
-		return matcher.isMatch( name );
-	}
-	
-	
-	public boolean accept( String name ) {
-
-		return matcher.isMatch( name );
+		return matcher.isMatch(name);
 	}
 
-	
+	public boolean accept(String name) {
+
+		return matcher.isMatch(name);
+	}
+
 	@Override
 	public String toString() {
-		
+
 		return matcher.toString();
 	}
-	
+
 }

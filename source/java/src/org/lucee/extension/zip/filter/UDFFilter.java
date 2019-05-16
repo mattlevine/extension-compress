@@ -30,54 +30,50 @@ public class UDFFilter extends UDFFilterSupport implements ResourceAndResourceNa
 	public UDFFilter(UDF udf) throws PageException {
 		super(udf);
 	}
-	
-    public boolean accept(String path) {
-    	args[0]=path;
-    	CFMLEngine engine = CFMLEngineFactory.getInstance();
-    	try {
+
+	public boolean accept(String path) {
+		args[0] = path;
+		CFMLEngine engine = CFMLEngineFactory.getInstance();
+		try {
 			return engine.getCastUtil().toBooleanValue(udf.call(engine.getThreadPageContext(), args, true));
-			
-		} 
-    	catch (PageException e) {
+
+		}
+		catch (PageException e) {
 			throw engine.getExceptionUtil().createPageRuntimeException(e);
 		}
-    }
-    
-    
-    @Override
+	}
+
+	@Override
 	public boolean accept(Resource file) {
-    	return accept(file.getAbsolutePath());
-    }
+		return accept(file.getAbsolutePath());
+	}
 
 	@Override
 	public boolean accept(Resource parent, String name) {
-		String path=parent.getAbsolutePath();
-		if(path.endsWith(File.separator)) path+=name;
-		else path+=File.separator+name;
+		String path = parent.getAbsolutePath();
+		if (path.endsWith(File.separator)) path += name;
+		else path += File.separator + name;
 		return accept(path);
 	}
-	
-    @Override
+
+	@Override
 	public String toString() {
-		return "UDFFilter:"+udf;
-	}
-	
-	public static ResourceAndResourceNameFilter createResourceAndResourceNameFilter(Object filter) throws PageException	{
-	   if(filter instanceof UDF)
-		   return createResourceAndResourceNameFilter((UDF)filter);
-	   return createResourceAndResourceNameFilter(CFMLEngineFactory.getInstance().getCastUtil().toString(filter));
+		return "UDFFilter:" + udf;
 	}
 
-	
-	public static ResourceAndResourceNameFilter createResourceAndResourceNameFilter(UDF filter) throws PageException	{
+	public static ResourceAndResourceNameFilter createResourceAndResourceNameFilter(Object filter) throws PageException {
+		if (filter instanceof UDF) return createResourceAndResourceNameFilter((UDF) filter);
+		return createResourceAndResourceNameFilter(CFMLEngineFactory.getInstance().getCastUtil().toString(filter));
+	}
+
+	public static ResourceAndResourceNameFilter createResourceAndResourceNameFilter(UDF filter) throws PageException {
 		return new UDFFilter(filter);
 	}
 
 	public static ResourceAndResourceNameFilter createResourceAndResourceNameFilter(String pattern) {
 
-		if( !CFMLEngineFactory.getInstance().getStringUtil().isEmpty(pattern, true) )
-	    	return new WildcardPatternFilter( pattern, "|" );
+		if (!CFMLEngineFactory.getInstance().getStringUtil().isEmpty(pattern, true)) return new WildcardPatternFilter(pattern, "|");
 
-	    return null;
+		return null;
 	}
 }

@@ -31,11 +31,11 @@ public class ZipParamSource implements ZipParamAbstr {
 
 	public ZipParamSource(Resource source, String entryPath, ResourceFilter filter, String prefix, boolean recurse) {
 
-		this.source=source;
-		this.entryPath=entryPath;
-		this.filter=filter;
-		this.prefix=prefix;
-		this.recurse=recurse;
+		this.source = source;
+		this.entryPath = entryPath;
+		this.filter = filter;
+		this.prefix = prefix;
+		this.recurse = recurse;
 	}
 
 	/**
@@ -55,7 +55,7 @@ public class ZipParamSource implements ZipParamAbstr {
 	/**
 	 * @return the filter
 	 */
-	public ResourceFilter getFilter(){
+	public ResourceFilter getFilter() {
 		return filter;
 	}
 
