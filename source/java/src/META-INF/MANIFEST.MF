@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Export-Package: org.lucee.extension.zip.tag
+Bundle-ManifestVersion: 2
+Require-Bundle: net.lingala.zip4j;bundle-version=1.3.2
