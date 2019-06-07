@@ -194,14 +194,14 @@
 			<name>password</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description></description>
+			<description>Password for the zip file.</description>
     	</attribute>
 		<attribute>
 			<type>string</type>
 			<name>encryptionalgorithm</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description></description>
+			<description>Supported algorithms are aes(=aes256), aes128 and standard</description>
     	</attribute>
 	</tag>
 	
@@ -303,14 +303,14 @@
 			<name>password</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description></description>
+			<description>Password for the file(s) added via cfzipparam</description>
     	</attribute>
 		<attribute>
 			<type>string</type>
 			<name>encryptionalgorithm</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description></description>
+			<description>Supported algorithms are aes(=aes256), aes128 and standard</description>
     	</attribute>
 	</tag>
 
