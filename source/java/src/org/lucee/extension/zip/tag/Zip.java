@@ -827,12 +827,12 @@ public final class Zip extends BodyTagImpl {
 	 * @param attributValue
 	 */
 	private void required(String attributeName, String attributValue) throws PageException {
-		if (Util.isEmpty(attributValue)) throw engine.getExceptionUtil().createApplicationException("invalid attribute constellation for the tag zip",
+		if (Util.isEmpty(attributValue)) throw engine.getExceptionUtil().createApplicationException("invalid attribute combination for the tag zip",
 				"attribute [" + attributeName + "] is required, if action is [" + action + "]");
 	}
 
 	private void required(String attributeName, String[] attributValue) throws PageException {
-		if (attributValue == null || attributValue.length == 0) throw engine.getExceptionUtil().createApplicationException("invalid attribute constellation for the tag zip",
+		if (attributValue == null || attributValue.length == 0) throw engine.getExceptionUtil().createApplicationException("invalid attribute combination for the tag zip",
 				"attribute [" + attributeName + "] is required, if action is [" + action + "]");
 	}
 
@@ -843,7 +843,7 @@ public final class Zip extends BodyTagImpl {
 	 * @param attributValue
 	 */
 	private void required(String attributeName, Resource attributValue, boolean exists) throws PageException {
-		if (attributValue == null) throw engine.getExceptionUtil().createApplicationException("invalid attribute constellation for the tag zip",
+		if (attributValue == null) throw engine.getExceptionUtil().createApplicationException("invalid attribute combination for the tag zip",
 				"attribute [" + attributeName + "] is required, if action is [" + action + "]");
 
 		if (exists && !attributValue.exists()) throw engine.getExceptionUtil().createApplicationException(attributeName + " resource [" + attributValue + "] doesn't exist");
