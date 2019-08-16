@@ -39,7 +39,6 @@ import org.lucee.extension.zip.filter.FileResourceFilter;
 import org.lucee.extension.zip.filter.OrResourceFilter;
 import org.lucee.extension.zip.filter.UDFFilter;
 import org.lucee.extension.zip.filter.WildcardPatternFilter;
-import org.omg.CORBA.portable.ApplicationException;
 
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.filter.ResourceFilter;
@@ -633,7 +632,7 @@ public final class Zip extends BodyTagImpl {
 			String ep = zps.getEntryPath();
 			if (ep == null) ep = zps.getSource().getName();
 			if (!Util.isEmpty(prefix)) ep = prefix + ep;
-			add(zip, zps.getSource().getInputStream(), ep, zps.getSource().lastModified(), true);
+			add(zip, zps.getSource(), ep, zps.getSource().lastModified());
 		}
 		else {
 			// filter
@@ -665,7 +664,7 @@ public final class Zip extends BodyTagImpl {
 					empty = false;
 				}
 				else {
-					add(zip, children[i].getInputStream(), parent + children[i].getName(), children[i].lastModified(), true);
+					add(zip, children[i], parent + children[i].getName(), children[i].lastModified());
 					empty = false;
 				}
 			}
@@ -673,28 +672,37 @@ public final class Zip extends BodyTagImpl {
 		if (empty) zip.addFolder(parent, null);
 	}
 
-	private void add(ZipFile zip, InputStream is, String path, long lastMod, boolean closeInput) throws IOException, ZipException, PageException {
+	private void add(ZipFile zip, InputStream is, String entryPath, long lastMod, boolean closeInput) throws IOException, ZipException, PageException {
 		if (alreadyUsed == null) alreadyUsed = new HashSet<String>();
-		else if (alreadyUsed.contains(path)) {
+		else if (alreadyUsed.contains(entryPath)) {
 			if (closeInput) Util.closeEL(is);
 			return;
 		}
 
 		// TODO set lastMod
 		try {
-			// Resource tmp = pageContext.getConfig().getTempDirectory().getRealResource(getTempName());
-			// engine.getIOUtil().copy(is, tmp, closeInput);
-
-			// File tmp2=engine.getCastUtil().toFile(tmp);
-			// zip.addFile(tmp2, createParam(path));
-			zip.addStream(is, createParam(path));
-			// zip.getFileHeader(path).setLastModFileTime((int)Zip4jUtil.javaToDosTime(lastMod));
-
+			zip.addStream(is, createParam(entryPath));
 		}
 		finally {
 			if (closeInput) Util.closeEL(is);
 		}
-		alreadyUsed.add(path);
+		alreadyUsed.add(entryPath);
+	}
+
+	private void add(ZipFile zip, Resource res, String entryPath, long lastMod) throws IOException, ZipException, PageException {
+		if (alreadyUsed == null) alreadyUsed = new HashSet<String>();
+		else if (alreadyUsed.contains(entryPath)) {
+			return;
+		}
+
+		File f = engine.getCastUtil().toFile(res, null);
+		if (f == null) {
+			add(zip, res.getInputStream(), entryPath, lastMod, true);
+			return;
+		}
+
+		zip.addFile((File) res, createParam(entryPath));
+		alreadyUsed.add(entryPath);
 	}
 
 	private String[] splitPathX(String path) {
@@ -817,7 +825,6 @@ public final class Zip extends BodyTagImpl {
 	 * 
 	 * @param attributeName
 	 * @param attributValue
-	 * @throws ApplicationException
 	 */
 	private void required(String attributeName, String attributValue) throws PageException {
 		if (Util.isEmpty(attributValue)) throw engine.getExceptionUtil().createApplicationException("invalid attribute constellation for the tag zip",
@@ -834,7 +841,6 @@ public final class Zip extends BodyTagImpl {
 	 * 
 	 * @param attributeName
 	 * @param attributValue
-	 * @throws ApplicationException
 	 */
 	private void required(String attributeName, Resource attributValue, boolean exists) throws PageException {
 		if (attributValue == null) throw engine.getExceptionUtil().createApplicationException("invalid attribute constellation for the tag zip",
