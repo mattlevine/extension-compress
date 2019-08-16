@@ -203,6 +203,13 @@
 			<rtexprvalue>true</rtexprvalue>
 			<description>Supported algorithms are aes(=aes256), aes128 and standard</description>
     	</attribute>
+	<attribute>
+		<type>string</type>
+		<name>compressionMethod</name>
+		<required>false</required>
+		<rtexprvalue>true</rtexprvalue>
+		<description>Set the zip compression level, default is deflate(deflateNormal),deflateFast,deflateFastest,deflateMaximum,deflateUtra,aesenc,store</description>
+    	</attribute>
 	</tag>
 	
 	
