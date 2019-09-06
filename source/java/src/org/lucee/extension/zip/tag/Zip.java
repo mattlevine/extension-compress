@@ -21,6 +21,8 @@ package org.lucee.extension.zip.tag;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -29,6 +31,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import org.lucee.extension.zip.ZipParamAbstr;
 import org.lucee.extension.zip.ZipParamContent;
@@ -52,11 +56,23 @@ import lucee.runtime.util.IO;
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.FileHeader;
+import net.lingala.zip4j.model.UnzipParameters;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.util.Zip4jConstants;
 import net.lingala.zip4j.util.Zip4jUtil;
 
 public final class Zip extends BodyTagImpl {
+
+	private static final UnzipParameters ALL_FALSE = new UnzipParameters();
+
+	static {
+		ALL_FALSE.setIgnoreAllFileAttributes(false);
+		ALL_FALSE.setIgnoreArchiveFileAttribute(false);
+		ALL_FALSE.setIgnoreDateTimeAttributes(false);
+		ALL_FALSE.setIgnoreHiddenFileAttribute(false);
+		ALL_FALSE.setIgnoreReadOnlyFileAttribute(false);
+		ALL_FALSE.setIgnoreSystemFileAttribute(false);
+	}
 
 	private String action = "zip";
 	private String charset;
@@ -370,6 +386,40 @@ public final class Zip extends BodyTagImpl {
 
 	}
 
+	public static void main(String[] args) throws IOException {
+		String fileZip = "/Users/mic/Test/tomcat9/webapps/ROOT/zip/test.zip";
+		File destDir = new File("/Users/mic/Test/tomcat9/webapps/ROOT/zip/trg");
+		byte[] buffer = new byte[1024];
+		ZipInputStream zis = new ZipInputStream(new FileInputStream(fileZip));
+		ZipEntry zipEntry = zis.getNextEntry();
+		while (zipEntry != null) {
+
+			File newFile = newFile(destDir, zipEntry);
+			FileOutputStream fos = new FileOutputStream(newFile);
+			int len;
+			while ((len = zis.read(buffer)) > 0) {
+				fos.write(buffer, 0, len);
+			}
+			fos.close();
+			zipEntry = zis.getNextEntry();
+		}
+		zis.closeEntry();
+		zis.close();
+	}
+
+	public static File newFile(File destinationDir, ZipEntry zipEntry) throws IOException {
+		File destFile = new File(destinationDir, zipEntry.getName());
+
+		String destDirPath = destinationDir.getCanonicalPath();
+		String destFilePath = destFile.getCanonicalPath();
+
+		if (!destFilePath.startsWith(destDirPath + File.separator)) {
+			throw new IOException("Entry is outside of the target dir: " + zipEntry.getName());
+		}
+
+		return destFile;
+	}
+
 	private void actionList() throws PageException, IOException, ZipException {
 		required("file", file, true);
 		required("name", name);
@@ -525,8 +575,15 @@ public final class Zip extends BodyTagImpl {
 					}
 
 					if (overwrite || !target.exists()) {
-						engine.getIOUtil().copy(zip.getInputStream(fh), target, true);
+						if (target instanceof File) {
+							zip.extractFile(fh, ((File) target).getParentFile().getAbsolutePath(), ALL_FALSE);
+						}
+						else engine.getIOUtil().copy(zip.getInputStream(fh), target, true);
+
 					}
+				}
+				if (target instanceof File) {
+					// ((File) target).setExecutable(executable);
 				}
 				target.setLastModified(Zip4jUtil.dosToJavaTme(fh.getLastModFileTime()));
 			}
