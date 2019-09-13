@@ -726,7 +726,10 @@ public final class Zip extends BodyTagImpl {
 				}
 			}
 		}
-		if (empty) zip.addFolder(parent, null);
+		if (empty) {
+			File f = engine.getCastUtil().toFile(dir, null);
+			if (f != null) zip.addFolder(f, createParam(parent));
+		}
 	}
 
 	private void add(ZipFile zip, InputStream is, String entryPath, long lastMod, boolean closeInput) throws IOException, ZipException, PageException {
