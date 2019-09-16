@@ -21,8 +21,6 @@ package org.lucee.extension.zip.tag;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -32,7 +30,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 import org.lucee.extension.zip.ZipParamAbstr;
 import org.lucee.extension.zip.ZipParamContent;
@@ -89,6 +86,7 @@ public final class Zip extends BodyTagImpl {
 	private EncryptionMethod encryption = EncryptionMethod.NONE;
 	private AesKeyStrength aes = AesKeyStrength.KEY_STRENGTH_256;
 	private CompressionLevel deflate = CompressionLevel.NORMAL;
+	private int elements;
 	private static int id = 0;
 
 	@Override
@@ -120,6 +118,7 @@ public final class Zip extends BodyTagImpl {
 
 		if (params != null) params.clear();
 		if (alreadyUsed != null) alreadyUsed.clear();
+		elements = 0;
 	}
 
 	/**
@@ -381,27 +380,6 @@ public final class Zip extends BodyTagImpl {
 
 	}
 
-	public static void main(String[] args) throws IOException {
-		String fileZip = "/Users/mic/Test/tomcat9/webapps/ROOT/zip/test.zip";
-		File destDir = new File("/Users/mic/Test/tomcat9/webapps/ROOT/zip/trg");
-		byte[] buffer = new byte[1024];
-		ZipInputStream zis = new ZipInputStream(new FileInputStream(fileZip));
-		ZipEntry zipEntry = zis.getNextEntry();
-		while (zipEntry != null) {
-
-			File newFile = newFile(destDir, zipEntry);
-			FileOutputStream fos = new FileOutputStream(newFile);
-			int len;
-			while ((len = zis.read(buffer)) > 0) {
-				fos.write(buffer, 0, len);
-			}
-			fos.close();
-			zipEntry = zis.getNextEntry();
-		}
-		zis.closeEntry();
-		zis.close();
-	}
-
 	public static File newFile(File destinationDir, ZipEntry zipEntry) throws IOException {
 		File destFile = new File(destinationDir, zipEntry.getName());
 
@@ -538,14 +516,12 @@ public final class Zip extends BodyTagImpl {
 			while (it.hasNext()) {
 				fh = it.next();
 				path = fh.getFileName().replace('\\', '/');
-
 				index = path.lastIndexOf('/');
 
 				// recurse
 				if (!recurse && index != -1) {
 					continue;
 				}
-
 				target = ZipUtil.toResource(destination, fh.getFileName());
 
 				if (target.exists() && overwrite) target.delete();
@@ -559,7 +535,9 @@ public final class Zip extends BodyTagImpl {
 				if (!entryPathMatch(path)) {
 					continue;
 				}
-				if (!storePath) target = destination.getRealResource(target.getName());
+				if (!storePath) {
+					target = destination.getRealResource(target.getName());
+				}
 				if (fh.isDirectory()) {
 					target.mkdirs();
 				}
@@ -570,15 +548,16 @@ public final class Zip extends BodyTagImpl {
 					}
 
 					if (overwrite || !target.exists()) {
-						if (target instanceof File) {
-							zip.extractFile(fh, ((File) target).getParentFile().getAbsolutePath());
-						}
-						else engine.getIOUtil().copy(zip.getInputStream(fh), target, true);
+						/*
+						 * if (target instanceof File) { zip.extractFile(fh, ((File)
+						 * target).getParentFile().getAbsolutePath()); }else
+						 */
+						engine.getIOUtil().copy(zip.getInputStream(fh), target, true);
 
 					}
 				}
 				if (target instanceof File) {
-					// ((File) target).setExecutable(executable);
+					((File) target).setExecutable(true);// TODO was is executable?
 				}
 				target.setLastModified(Zip4jUtil.dosToJavaTme(fh.getLastModifiedTime()));
 			}
@@ -619,10 +598,11 @@ public final class Zip extends BodyTagImpl {
 
 			Object[] arr = params.toArray();
 			for (int i = arr.length - 1; i >= 0; i--) {
-				if (arr[i] instanceof ZipParamSource) actionZip(out, (ZipParamSource) arr[i]);
+				if (arr[i] instanceof ZipParamSource) {
+					actionZip(out, (ZipParamSource) arr[i]);
+				}
 				else if (arr[i] instanceof ZipParamContent) actionZip(out, (ZipParamContent) arr[i]);
 			}
-
 			if (existing != null) {
 				ZipFile in = getZip(existing, password);
 				try {
@@ -630,7 +610,6 @@ public final class Zip extends BodyTagImpl {
 					FileHeader fh;
 					while (it.hasNext()) {
 						fh = it.next();
-						System.err.println("+ " + fh.getFileName() + ":" + fh.isDirectory());
 						if (fh.isDirectory()) {
 							// createEmptyDirectory(out, dir, fh.getFileName(), null); TODO disabled for the moment, becuae it
 							// causes problems
@@ -646,6 +625,10 @@ public final class Zip extends BodyTagImpl {
 			}
 
 			if (!Util.isEmpty(password)) out.setPassword(password.toCharArray());
+
+			if (elements == 0 && !out.isValidZipFile()) throw engine.getExceptionUtil().createApplicationException("cannot create an empty zip file");
+
+			// System.err.println(file + ":" + elements + ":" + out.isValidZipFile());
 		}
 		finally {
 
@@ -704,7 +687,6 @@ public final class Zip extends BodyTagImpl {
 		else prefix = "";
 
 		if (zps.getSource().isFile()) {
-
 			String ep = zps.getEntryPath();
 			if (ep == null) ep = zps.getSource().getName();
 			if (!Util.isEmpty(prefix)) ep = prefix + ep;
@@ -720,7 +702,6 @@ public final class Zip extends BodyTagImpl {
 			else {
 				if (f == null) f = FileResourceFilter.FILTER;
 			}
-
 			addDir(zip, zps.getSource(), prefix, f);
 		}
 	}
@@ -754,10 +735,20 @@ public final class Zip extends BodyTagImpl {
 		if (parameters == null) parameters = new ZipParameters();
 		parameters.setFileNameInZip(toDir(path));
 		zip.addFolder(f, parameters);
+		elements++;
 	}
 
-	private String toDir(String str) {
+	private static String toDir(String str) {
+		str = str.trim().replace('\\', '/');
+		if (str.startsWith("/")) str = str.substring(1);
 		if (!str.endsWith("/")) return str + "/";
+		return str;
+	}
+
+	private static String toFile(String str) {
+		str = str.trim().replace('\\', '/');
+		if (str.startsWith("/")) str = str.substring(1);
+		if (str.endsWith("/")) str = str.substring(0, str.length() - 1);
 		return str;
 	}
 
@@ -791,6 +782,7 @@ public final class Zip extends BodyTagImpl {
 		}
 
 		zip.addFile((File) res, createParam(entryPath, null));
+		elements++;
 		alreadyUsed.add(entryPath);
 	}
 
@@ -808,17 +800,6 @@ public final class Zip extends BodyTagImpl {
 
 	}
 
-	/*
-	 * private void add(ZipFile zip, File file, String path, long lastMod) throws IOException,
-	 * ZipException { if(alreadyUsed==null)alreadyUsed=new HashSet<String>(); else
-	 * if(alreadyUsed.contains(path)) return;
-	 * 
-	 * // TODO set lastMod try { String[] split = splitPath(path); System.out.println("--> path:"+path);
-	 * System.out.println(file); if(!Util.isEmpty(split[0],true)) zip.addFolder(split[0],
-	 * createParam(path)); zip.addFile(file, createParam(path)); } finally { //if(closeInput)
-	 * Util.closeEL(is); } alreadyUsed.add(path); }
-	 */
-
 	private ZipParameters createParam(String path, ZipParameters param) {
 
 		if (param == null) param = new ZipParameters();
@@ -832,7 +813,6 @@ public final class Zip extends BodyTagImpl {
 		// password
 		if (!Util.isEmpty(password)) {
 			if (EncryptionMethod.NONE.equals(encryption)) encryption = EncryptionMethod.ZIP_STANDARD;
-			// MUST param.setPassword(password);
 		}
 
 		// encryption
@@ -845,7 +825,8 @@ public final class Zip extends BodyTagImpl {
 		}
 
 		// path
-		param.setFileNameInZip(path);
+		param.setDefaultFolderPath("/");
+		param.setFileNameInZip(toFile(path));
 		// TODO last mod
 
 		return param;
