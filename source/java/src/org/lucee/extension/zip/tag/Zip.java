@@ -615,7 +615,7 @@ public final class Zip extends BodyTagImpl {
 			}
 			file.delete();
 
-			ZipFile out = getZip(file, null);// password is only needed to read a zip
+			ZipFile out = getZip(file, password);// password is only needed to read a zip
 
 			Object[] arr = params.toArray();
 			for (int i = arr.length - 1; i >= 0; i--) {
@@ -900,7 +900,7 @@ public final class Zip extends BodyTagImpl {
 
 	private ZipFile getZip(Resource file, String password) throws IOException, ZipException, PageException {
 		ZipFile zf = new ZipFile(engine.getCastUtil().toFile(file));
-		if (!Util.isEmpty(password) && zf.isEncrypted()) {
+		if (!Util.isEmpty(password) && (file.length() == 0 || zf.isEncrypted())) {
 			zf.setPassword(password.toCharArray());
 		}
 		return zf;
