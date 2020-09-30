@@ -522,6 +522,12 @@ public final class Zip extends BodyTagImpl {
 				if (!recurse && index != -1) {
 					continue;
 				}
+				
+				// entrypath
+				if (!entryPathMatch(path)) {
+					continue;
+				}
+				
 				target = ZipUtil.toResource(destination, fh.getFileName());
 
 				if (target.exists() && overwrite) target.delete();
@@ -531,10 +537,6 @@ public final class Zip extends BodyTagImpl {
 					continue;
 				}
 
-				// entrypath
-				if (!entryPathMatch(path)) {
-					continue;
-				}
 				if (!storePath) {
 					target = destination.getRealResource(target.getName());
 				}
