@@ -523,7 +523,12 @@ public final class Zip extends BodyTagImpl {
 					continue;
 				}
 				target = ZipUtil.toResource(destination, fh.getFileName());
-
+				
+				// entrypath
+				if (!entryPathMatch(path)) {
+					continue;
+				}
+				
 				if (target.exists() && overwrite) target.delete();
 
 				// filter
@@ -531,10 +536,6 @@ public final class Zip extends BodyTagImpl {
 					continue;
 				}
 
-				// entrypath
-				if (!entryPathMatch(path)) {
-					continue;
-				}
 				if (!storePath) {
 					target = destination.getRealResource(target.getName());
 				}
